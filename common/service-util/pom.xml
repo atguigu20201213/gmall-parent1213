@@ -16,7 +16,7 @@
             <artifactId>common-util</artifactId>
             <version>1.0</version>
         </dependency>
-        <!--需要添加一个Spring boot start-->
+        <!--需要添加一个Spring boot start  是的-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
