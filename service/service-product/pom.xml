@@ -3,25 +3,20 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>common</artifactId>
+        <artifactId>service</artifactId>
         <groupId>com.atguigu.gmall1213</groupId>
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <!--    maven   不写 默认是jar包-->
-    <!--    <packaging>jar</packaging>-->
-    <artifactId>common-util</artifactId>
+
+    <artifactId>service-product</artifactId>
 
 
     <dependencies>
-
-        <!--需要一个httpClient -->
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
+            <groupId>net.oschina.zcx7878</groupId>
+            <artifactId>fastdfs-client-java</artifactId>
         </dependency>
-
 
 
     </dependencies>

@@ -10,11 +10,26 @@
     <modelVersion>4.0.0</modelVersion>
     <!--父工程-->
     <packaging>pom</packaging>
-
+    <modules>
+        <module>service-product</module>
+    </modules>
     <artifactId>service</artifactId>
 
 
     <dependencies>
+
+        <!--swagger-->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <!--swagger ui-->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
         <!--依赖服务的工具类-->
         <dependency>
             <groupId>com.atguigu.gmall1213</groupId>

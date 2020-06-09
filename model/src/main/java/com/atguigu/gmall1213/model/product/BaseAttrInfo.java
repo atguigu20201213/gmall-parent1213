@@ -33,7 +33,7 @@ public class BaseAttrInfo extends BaseEntity {
 	@ApiModelProperty(value = "分类层级")
 	@TableField("category_level")
 	private Integer categoryLevel;
-
+	//表示非数据库
 	@TableField(exist = false)
 	private List<BaseAttrValue> attrValueList;
 

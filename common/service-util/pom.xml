@@ -16,13 +16,7 @@
             <artifactId>common-util</artifactId>
             <version>1.0</version>
         </dependency>
-        <!--需要添加一个Spring boot start  是的-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- redis -->
+        <!-- redis redis 因为查询数据库的时候，需要将数据进行缓存。 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -48,7 +42,6 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
 
