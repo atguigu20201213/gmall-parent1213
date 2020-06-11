@@ -5,9 +5,12 @@ import com.atguigu.gmall1213.product.mapper.*;
 
 import com.atguigu.gmall1213.product.service.ManageService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import jdk.internal.org.objectweb.asm.tree.analysis.BasicValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +18,7 @@ import java.util.List;
 
 @Service
 public class ManageServiceImpl implements ManageService {
+
 
     // 通常会调用mapper 层。
     @Autowired
@@ -31,6 +35,9 @@ public class ManageServiceImpl implements ManageService {
 
     @Autowired
     private BaseAttrValueMapper baseAttrValueMapper;
+    @Autowired
+    private SpuInfoMapper spuInfoMapper;
+
 
     @Override
     public List<BaseCategory1> getCategory1() {
@@ -78,11 +85,11 @@ public class ManageServiceImpl implements ManageService {
     @Override
     @Transactional
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
-        if (null!=baseAttrInfo){
-            /*
+       /* if (null!=baseAttrInfo){
+            *//*
             一个是平台属性表；baseAttrInfo
             一个是平台属性值表： baseAttrValue
-             */
+             *//*
             baseAttrInfoMapper.insert(baseAttrInfo);
             // 平台属性值插入的时候，可能存在多个值的去情况，具体是多少个值，需要看传递过来的数据。
             // 页面在传递平台属性值数据的时候，数据会自动封装到 BaseAttrInfo 中 这个属性中 attrValueList
@@ -97,6 +104,62 @@ public class ManageServiceImpl implements ManageService {
                     baseAttrValueMapper.insert(baseAttrValue);
                 }
             }
+        }*/
+        //操作的平台属性表
+        if (baseAttrInfo.getId() != null) {
+            //修改功能
+            baseAttrInfoMapper.updateById(baseAttrInfo);
+        } else {
+            //插入数据
+            baseAttrInfoMapper.insert(baseAttrInfo);
         }
+
+        //删除数据有条件
+        QueryWrapper<BaseAttrValue> baseAttrValueQueryWrapper = new QueryWrapper<>();
+        baseAttrValueQueryWrapper.eq("attr_id", baseAttrInfo.getId());
+        baseAttrValueMapper.delete(baseAttrValueQueryWrapper);
+
+        List<BaseAttrValue> attrValueList = baseAttrInfo.getAttrValueList();
+        if (null!=attrValueList && attrValueList.size()>0){
+            for (BaseAttrValue baseAttrValue : attrValueList) {
+                // 页面在提交数据的时候，并没有给attrId 赋值，所以在此处需要手动赋值
+                // attrId = baseAttrInfo.getId();
+                baseAttrValue.setAttrId(baseAttrInfo.getId());
+                // 循环将数据添加到数据表中
+                baseAttrValueMapper.insert(baseAttrValue);
+            }
+        }
+
     }
+
+    @Override
+    public BaseAttrInfo getAttrInfo(Long attrId) {
+        BaseAttrInfo baseAttrInfo = baseAttrInfoMapper.selectById(attrId);
+        //不能直接返回   需要的是集合
+        //平台属性值不是数据库  需要赋值
+        if (null != baseAttrInfo) {
+            QueryWrapper<BaseAttrValue> baseAttrInfoQueryWrapper = new QueryWrapper<>();
+            baseAttrInfoQueryWrapper.eq("attr_id", attrId);
+            List<BaseAttrValue> baseAttrValueList = baseAttrValueMapper.selectList(baseAttrInfoQueryWrapper);
+            //将平台属性值结合放入 basseAttrInfo 中 此时才能返回
+            baseAttrInfo.setAttrValueList(baseAttrValueList);
+        }
+
+
+
+        return baseAttrInfo;
+    }
+
+    @Override
+    public IPage<SpuInfo> selectPage(com.baomidou.mybatisplus.extension.plugins.pagination.Page<SpuInfo> spuInfoPageParam, SpuInfo spuInfo) {
+        //封装查询条件
+        QueryWrapper<SpuInfo> spuInfoQueryWrapper = new QueryWrapper<>();
+        spuInfoQueryWrapper.eq("category3_id", spuInfo.getCategory3Id());
+        spuInfoQueryWrapper.orderByDesc("id");
+
+        return spuInfoMapper.selectPage(spuInfoPageParam, spuInfoQueryWrapper);
+
+    }
+
+
 }
