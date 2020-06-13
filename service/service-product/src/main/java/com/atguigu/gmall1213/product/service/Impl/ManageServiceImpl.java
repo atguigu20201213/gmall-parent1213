@@ -6,11 +6,10 @@ import com.atguigu.gmall1213.product.mapper.*;
 import com.atguigu.gmall1213.product.service.ManageService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import jdk.internal.org.objectweb.asm.tree.analysis.BasicValue;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +36,31 @@ public class ManageServiceImpl implements ManageService {
     private BaseAttrValueMapper baseAttrValueMapper;
     @Autowired
     private SpuInfoMapper spuInfoMapper;
+    @Autowired
+    private BaseSaleAttrMapper baseSaleAttrMapper;
+    @Autowired
+    private SpuImageMapper spuImageMapper;
+    @Autowired
+    private SpuSaleAttrMapper spuSaleAttrMapper;
+    @Autowired
+    private SpuSaleAttrValueMapper spuSaleAttrValueMapper;
+
+    @Autowired
+    private SkuInfoMapper skuInfoMapper;
+
+    @Autowired
+    private SkuImageMapper skuImageMapper;
+
+    @Autowired
+    private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+
+    @Autowired
+    private SkuAttrValueMapper skuAttrValueMapper;
+
 
 
     @Override
+
     public List<BaseCategory1> getCategory1() {
         // select * from base_category1; 表与实体类与mapper 名称对应！
         return baseCategory1Mapper.selectList(null);
@@ -50,15 +71,15 @@ public class ManageServiceImpl implements ManageService {
         // select * from base_category2 where category1_id=category1Id;
         QueryWrapper<BaseCategory2> baseCategory2QueryWrapper = new QueryWrapper<>();
         // 第一个参数，是实体类的属性名，还是字段名？
-        baseCategory2QueryWrapper.eq("category1_id",category1Id);
-        return   baseCategory2Mapper.selectList(baseCategory2QueryWrapper);
+        baseCategory2QueryWrapper.eq("category1_id", category1Id);
+        return baseCategory2Mapper.selectList(baseCategory2QueryWrapper);
     }
 
     @Override
     public List<BaseCategory3> getCategory3(Long category2Id) {
         // select * from base_category3 where category2_id=category2Id;
         QueryWrapper<BaseCategory3> baseCategory3QueryWrapper = new QueryWrapper<>();
-        baseCategory3QueryWrapper.eq("category2_id",category2Id);
+        baseCategory3QueryWrapper.eq("category2_id", category2Id);
         return baseCategory3Mapper.selectList(baseCategory3QueryWrapper);
     }
 
@@ -79,14 +100,14 @@ public class ManageServiceImpl implements ManageService {
          base_attr_value 属性值数据在这张表中！
 
          */
-        return baseAttrInfoMapper.selectBaseAttrInfoList(category1Id,category2Id,category3Id);
+        return baseAttrInfoMapper.selectBaseAttrInfoList(category1Id, category2Id, category3Id);
     }
 
     @Override
     @Transactional
     public void saveAttrInfo(BaseAttrInfo baseAttrInfo) {
-       /* if (null!=baseAttrInfo){
-            *//*
+        /* if (null!=baseAttrInfo){
+         *//*
             一个是平台属性表；baseAttrInfo
             一个是平台属性值表： baseAttrValue
              *//*
@@ -120,7 +141,7 @@ public class ManageServiceImpl implements ManageService {
         baseAttrValueMapper.delete(baseAttrValueQueryWrapper);
 
         List<BaseAttrValue> attrValueList = baseAttrInfo.getAttrValueList();
-        if (null!=attrValueList && attrValueList.size()>0){
+        if (null != attrValueList && attrValueList.size() > 0) {
             for (BaseAttrValue baseAttrValue : attrValueList) {
                 // 页面在提交数据的时候，并没有给attrId 赋值，所以在此处需要手动赋值
                 // attrId = baseAttrInfo.getId();
@@ -146,7 +167,6 @@ public class ManageServiceImpl implements ManageService {
         }
 
 
-
         return baseAttrInfo;
     }
 
@@ -161,5 +181,134 @@ public class ManageServiceImpl implements ManageService {
 
     }
 
+    @Override
+    public IPage<SkuInfo> selectPage(Page<SkuInfo> skuInfoPage) {
+       return skuInfoMapper.selectPage(skuInfoPage, new QueryWrapper<SkuInfo>().orderByDesc("id"));
+
+    }
+
+    @Override
+    public List<BaseSaleAttr> getBaseSaleAttrList() {
+        //调用mapper层
+        return baseSaleAttrMapper.selectList(null);
+    }
+
+    @Override
+    @Transactional
+    public void saveSpuInfo(SpuInfo spuInfo) {
+        /*
+            需要对应的mapper
+            spuInfo 表中的数据
+            spuImage 图片列表
+            spuSaleAttr 销售属性
+            spuSaleAttrValue 销售属性值
+         */
+        spuInfoMapper.insert(spuInfo);
+        // 从获取到数据
+        List<SpuImage> spuImageList = spuInfo.getSpuImageList();
+        if (null != spuImageList && spuImageList.size() > 0) {
+            // 循环遍历添加
+            for (SpuImage spuImage : spuImageList) {
+                spuImage.setSpuId(spuInfo.getId());
+                spuImageMapper.insert(spuImage);
+            }
+        }
+        List<SpuSaleAttr> spuSaleAttrList = spuInfo.getSpuSaleAttrList();
+        if (null != spuSaleAttrList && spuSaleAttrList.size() > 0) {
+            for (SpuSaleAttr spuSaleAttr : spuSaleAttrList) {
+                spuSaleAttr.setSpuId(spuInfo.getId());
+                spuSaleAttrMapper.insert(spuSaleAttr);
+
+                // 在销售属性中获取销售属性值集合
+                List<SpuSaleAttrValue> spuSaleAttrValueList = spuSaleAttr.getSpuSaleAttrValueList();
+
+                if (null != spuSaleAttrValueList && spuSaleAttrValueList.size() > 0) {
+                    for (SpuSaleAttrValue spuSaleAttrValue : spuSaleAttrValueList) {
+                        spuSaleAttrValue.setSpuId(spuInfo.getId());
+                        spuSaleAttrValue.setSaleAttrName(spuSaleAttr.getSaleAttrName());
+
+                        spuSaleAttrValueMapper.insert(spuSaleAttrValue);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<SpuImage> getSpuImageList(Long spuId) {
+        return spuImageMapper.selectList(new QueryWrapper<SpuImage>().eq("spu_id", spuId));
+
+    }
+
+    @Override
+    public List<SpuSaleAttr> getSpuSaleAttrList(Long spuId) {
+        // 由于数据存在多张表中，所以需要自定义xml文件来实现
+        return spuSaleAttrMapper.selectSpuSaleAttrList(spuId);
+    }
+
+    @Override
+    @Transactional
+    public void saveSkuInfo(SkuInfo skuInfo) {
+//        skuInfo 库存单元表
+//        skuSaleAttrValue sku与销售属性值的中间表
+//        skuAttrValue sku与平台属性中间表
+//        skuImage 库存单元图片表
+        skuInfoMapper.insert(skuInfo);
+        // 获取销售属性的数据
+        List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
+        // if (CollectionUtils.isEmpty())
+        if (null!= skuSaleAttrValueList && skuSaleAttrValueList.size()>0){
+            // 循环遍历
+            for (SkuSaleAttrValue skuSaleAttrValue : skuSaleAttrValueList) {
+                // ...... 可能有坑！填了！
+                // 在已知的条件中获取spuId,skuId
+                skuSaleAttrValue.setSkuId(skuInfo.getId());
+                // 从哪里获取 当数据从页面提交过来的时候，spuId 在skuInfo 中已经赋值了。
+                skuSaleAttrValue.setSpuId(skuInfo.getSpuId());
+                // 插入数据
+                skuSaleAttrValueMapper.insert(skuSaleAttrValue);
+            }
+        }
+
+        // skuAttrValue 平台属性数据
+        List<SkuAttrValue> skuAttrValueList = skuInfo.getSkuAttrValueList();
+        if (null!= skuAttrValueList && skuAttrValueList.size()>0){
+            for (SkuAttrValue skuAttrValue : skuAttrValueList) {
+                // ...... 可能有坑！
+                skuAttrValue.setSkuId(skuInfo.getId());
+                skuAttrValueMapper.insert(skuAttrValue);
+            }
+        }
+
+        // skuImage 图片列表
+        List<SkuImage> skuImageList = skuInfo.getSkuImageList();
+        if (null!=skuImageList && skuImageList.size()>0){
+            for (SkuImage skuImage : skuImageList) {
+                // ...... 可能有坑！
+                skuImage.setSkuId(skuInfo.getId());
+                skuImageMapper.insert(skuImage);
+            }
+        }
+    }
+
+    @Override
+    public void onSale(Long skuId) {
+        //  is_sale = 1 表示可以上架，
+        // update sku_info set is_sale = 1 where id=skuId
+        SkuInfo skuInfo = new SkuInfo();
+        skuInfo.setIsSale(1);
+        skuInfo.setId(skuId);
+        skuInfoMapper.updateById(skuInfo);
+
+    }
+
+    @Override
+    public void cancelSale(Long skuId) {
+        // 0 那么则这商品不能买！ update sku_info set is_sale = 0 where id=skuId
+        SkuInfo skuInfo = new SkuInfo();
+        skuInfo.setIsSale(0);
+        skuInfo.setId(skuId);
+        skuInfoMapper.updateById(skuInfo);
+    }
 
 }

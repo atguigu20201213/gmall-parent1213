@@ -29,6 +29,26 @@ public interface ManageService {
      * @param spuInfo 因为spuInfo 实体类的属性中有一个属性叫category3Id | spring mvc 封装对象传值
      * @return
      */
+    //查询spu列表
+
     IPage<SpuInfo> selectPage(Page<SpuInfo> spuInfoPageParam , SpuInfo spuInfo);
+    //查询sku 列表
+    IPage<SkuInfo> selectPage(Page<SkuInfo> skuInfoPage);
+
+    //获取所有的销售属性数据
+    List<BaseSaleAttr> getBaseSaleAttrList();
+
+    void saveSpuInfo(SpuInfo spuInfo);
+
+    List<SpuImage> getSpuImageList( Long spuId);
+
+    List<SpuSaleAttr> getSpuSaleAttrList(Long spuId);
+
+    void saveSkuInfo(SkuInfo skuInfo);
+
+    void onSale(Long skuId);
+
+    void cancelSale(Long skuId);
+
 }
 

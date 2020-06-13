@@ -93,7 +93,7 @@ public class BaseManageController {
         List<BaseAttrValue> attrValueList = baseAttrInfo.getAttrValueList();
         return  Result.ok(attrValueList);
     }
-    //根据条件查询spuinfo 数据列表
+    //根据条件查询spuInfo 数据列表
     @GetMapping("{page}/{limit}")
     public Result getPage(@PathVariable Long page,
                           @PathVariable Long limit,
