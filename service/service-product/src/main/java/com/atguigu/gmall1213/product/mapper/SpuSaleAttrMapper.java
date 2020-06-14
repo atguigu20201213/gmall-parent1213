@@ -4,6 +4,7 @@ package com.atguigu.gmall1213.product.mapper;
         import com.atguigu.gmall1213.model.product.SpuSaleAttr;
         import com.baomidou.mybatisplus.core.mapper.BaseMapper;
         import org.apache.ibatis.annotations.Mapper;
+        import org.apache.ibatis.annotations.Param;
 
         import java.util.List;
 
@@ -11,4 +12,7 @@ package com.atguigu.gmall1213.product.mapper;
 public interface SpuSaleAttrMapper extends BaseMapper<SpuSaleAttr> {
 
     List<SpuSaleAttr> selectSpuSaleAttrList(Long spuId);
+
+    List<SpuSaleAttr> selectSpuSaleAttrListCheckBySku(@Param("skuId") Long skuId,
+                                                      @Param("spuId") Long spuId);
 }
