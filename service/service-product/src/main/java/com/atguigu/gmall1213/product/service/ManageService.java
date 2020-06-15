@@ -123,6 +123,5 @@ public interface ManageService {
     Map getSkuValueIdsMap(Long spuId);
 
 
-
 }
 

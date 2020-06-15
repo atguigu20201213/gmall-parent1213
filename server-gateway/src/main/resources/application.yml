@@ -1,3 +1,4 @@
+
 server:
   port: 80
 spring:
@@ -12,7 +13,17 @@ spring:
         locator:      #路由访问方式：http://Gateway_HOST:Gateway_PORT/大写的serviceId/**，其中微服务应用名默认大写访问。
           enabled: true
       routes:
-      - id: service-product #唯一标识
-        uri: lb://service-product  #负载均衡服务
-        predicates:
-        - Path=/*/product/** # 路径匹配
+        - id: service-product # 唯一标识
+          uri: lb://service-product # 负载均衡服务
+          predicates:
+            - Path=/*/product/** # 路径匹配
+        - id: service-item # 唯一标识
+          uri: lb://service-item # 负载均衡服务
+          predicates:
+            - Path=/*/item/** # 路径匹配
+        #==================web前端==========================
+        - id: web-item  # 唯一标识
+          uri: lb://web-all # 负载均衡服务
+          predicates:
+            - Host=item.gmall.com # 映射域名
+

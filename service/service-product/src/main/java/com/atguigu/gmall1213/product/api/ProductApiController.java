@@ -27,8 +27,6 @@ public class ProductApiController {
     // 根据skuid 获取skuinfo   skuImage
     @GetMapping("inner/getSkuInfo/{skuId}")
     public SkuInfo getSkuInfoById(@PathVariable Long skuId) {
-
-
         return manageService.getSkuInfo(skuId);
     }
     // 根据三级分类Id 查询分类名称

@@ -2,7 +2,7 @@ package com.atguigu.gmall1213.common.constant;
 
 /**
  * Redis常量配置类
- *
+ * 存储的电商中缓存的所有key组成
  */
 public class RedisConst {
 

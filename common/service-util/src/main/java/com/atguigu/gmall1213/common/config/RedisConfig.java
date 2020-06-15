@@ -29,6 +29,7 @@ import java.time.Duration;
 public class RedisConfig {
 
     // 使用默认标签做缓存
+    //电商中不使用标签  ，而是使用模板
     @Bean
     public KeyGenerator wiselyKeyGenerator() {
         return new KeyGenerator() {
@@ -48,23 +49,28 @@ public class RedisConfig {
     // 声明模板
     @Bean
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        //声明一个 redisTemplate
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+        //设置连接工厂对象
         redisTemplate.setConnectionFactory(redisConnectionFactory);
+        //设置序列化
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
+
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
+        //设置序列化的数据类型
+        redisTemplate.setKeySerializer(new StringRedisSerializer());  //set (key,value) ke'y 设置序列化
+        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer); //set (key,value) value 设置序列化
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());  //hset (key,field,value) key 设置序列化
+        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);//hset (key,field,value) value 设置序列化
 
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer);
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
 
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
-
+    //缓存管理    每个标签缓存过期时间是 600s
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory factory) {
         RedisSerializer<String> redisSerializer = new StringRedisSerializer();
