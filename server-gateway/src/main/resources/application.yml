@@ -29,4 +29,3 @@ spring:
           uri: lb://web-all # 负载均衡服务
           predicates:
             - Host=www.gmall.com # 映射域名
-

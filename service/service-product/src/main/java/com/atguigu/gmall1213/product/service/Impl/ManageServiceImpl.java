@@ -76,8 +76,6 @@ public class ManageServiceImpl implements ManageService {
     private RedissonClient redissonClient;
 
 
-
-
     @Override
 
     public List<BaseCategory1> getCategory1() {
@@ -202,7 +200,7 @@ public class ManageServiceImpl implements ManageService {
 
     @Override
     public IPage<SkuInfo> selectPage(Page<SkuInfo> skuInfoPage) {
-       return skuInfoMapper.selectPage(skuInfoPage, new QueryWrapper<SkuInfo>().orderByDesc("id"));
+        return skuInfoMapper.selectPage(skuInfoPage, new QueryWrapper<SkuInfo>().orderByDesc("id"));
 
     }
 
@@ -276,7 +274,7 @@ public class ManageServiceImpl implements ManageService {
         // 获取销售属性的数据
         List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
         // if (CollectionUtils.isEmpty())
-        if (null!= skuSaleAttrValueList && skuSaleAttrValueList.size()>0){
+        if (null != skuSaleAttrValueList && skuSaleAttrValueList.size() > 0) {
             // 循环遍历
             for (SkuSaleAttrValue skuSaleAttrValue : skuSaleAttrValueList) {
                 // ...... 可能有坑！填了！
@@ -291,7 +289,7 @@ public class ManageServiceImpl implements ManageService {
 
         // skuAttrValue 平台属性数据
         List<SkuAttrValue> skuAttrValueList = skuInfo.getSkuAttrValueList();
-        if (null!= skuAttrValueList && skuAttrValueList.size()>0){
+        if (null != skuAttrValueList && skuAttrValueList.size() > 0) {
             for (SkuAttrValue skuAttrValue : skuAttrValueList) {
                 // ...... 可能有坑！
                 skuAttrValue.setSkuId(skuInfo.getId());
@@ -301,7 +299,7 @@ public class ManageServiceImpl implements ManageService {
 
         // skuImage 图片列表
         List<SkuImage> skuImageList = skuInfo.getSkuImageList();
-        if (null!=skuImageList && skuImageList.size()>0){
+        if (null != skuImageList && skuImageList.size() > 0) {
             for (SkuImage skuImage : skuImageList) {
                 // ...... 可能有坑！
                 skuImage.setSkuId(skuInfo.getId());
@@ -343,16 +341,16 @@ public class ManageServiceImpl implements ManageService {
         try {
             // 先判断缓存中是否有数据，查询缓存必须知道缓存的key是什么！
             // 定义缓存的key 商品详情的缓存key=sku:skuId:info
-            String skuKey = RedisConst.SKUKEY_PREFIX+skuId+RedisConst.SKUKEY_SUFFIX;
+            String skuKey = RedisConst.SKUKEY_PREFIX + skuId + RedisConst.SKUKEY_SUFFIX;
             // 根据key 获取缓存中的数据
             // 如果查询一个不存在的数据，那么缓存中应该是一个空对象{这个对象有地址，但是属性Id，price 等没有值}
             skuInfo = (SkuInfo) redisTemplate.opsForValue().get(skuKey);
             // 存储数据为什么使用String ，存储对象的时候建议使用Hash---{hset(skuKey,字段名,字段名所对应的值); 便于对当前对象中属性修改}
             // 对于商品详情来讲：我们只做显示，并没有修改。所以此处可以使用String 来存储!
-            if (skuInfo==null){
+            if (skuInfo == null) {
                 // 从数据库中获取数据，防止缓存击穿做分布式锁
                 // 定义分布式锁的key lockKey=sku:skuId:lock
-                String lockKey = RedisConst.SKUKEY_PREFIX+skuId+RedisConst.SKULOCK_SUFFIX;
+                String lockKey = RedisConst.SKUKEY_PREFIX + skuId + RedisConst.SKULOCK_SUFFIX;
                 // 使用redisson
                 RLock lock = redissonClient.getLock(lockKey);
                 // 尝试加锁，最多等待100秒，上锁以后10秒自动解锁
@@ -361,16 +359,16 @@ public class ManageServiceImpl implements ManageService {
                     try {
                         // 从数据库中获取数据
                         skuInfo = getSkuInfoDB(skuId);
-                        if (skuInfo==null){
+                        if (skuInfo == null) {
                             // 为了防止缓存穿透，设置一个空对象放入缓存,这个时间建议不要太长！
                             SkuInfo skuInfo1 = new SkuInfo();
                             // 放入缓存
-                            redisTemplate.opsForValue().set(skuKey,skuInfo1,RedisConst.SKUKEY_TEMPORARY_TIMEOUT,TimeUnit.SECONDS);
+                            redisTemplate.opsForValue().set(skuKey, skuInfo1, RedisConst.SKUKEY_TEMPORARY_TIMEOUT, TimeUnit.SECONDS);
                             // 返回数据
-                            return  skuInfo1;
+                            return skuInfo1;
                         }
                         // 从数据库中获取到了数据，放入缓存
-                        redisTemplate.opsForValue().set(skuKey,skuInfo,RedisConst.SKUKEY_TIMEOUT,TimeUnit.SECONDS);
+                        redisTemplate.opsForValue().set(skuKey, skuInfo, RedisConst.SKUKEY_TIMEOUT, TimeUnit.SECONDS);
                         return skuInfo;
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -378,13 +376,13 @@ public class ManageServiceImpl implements ManageService {
                         // 解锁
                         lock.unlock();
                     }
-                }else {
+                } else {
                     // 此时的线程并没有获取到分布式锁，应该等待,
                     Thread.sleep(1000);
                     // 等待完成之后，还需要查询数据！
                     return getSkuInfo(skuId);
                 }
-            }else {
+            } else {
                 // 表示缓存中有数据了
                 // 弯！稍加严禁一点：
                 //            if (skuInfo.getId()==null){ // 这个对象有地址，但是属性Id，price 等没有值！
@@ -398,7 +396,7 @@ public class ManageServiceImpl implements ManageService {
             e.printStackTrace();
         }
         // 如何中途发送了异常：数据库挺一下！
-        return  getSkuInfoDB(skuId);
+        return getSkuInfoDB(skuId);
     }
 
     private SkuInfo getSkuInfoRedis(Long skuId) {
@@ -468,10 +466,10 @@ public class ManageServiceImpl implements ManageService {
         }
 
         //如果中涂发生异常 ，走一个兜底返回数据 数据库挺一下
-        return getSkuInfoDB( skuId);
+        return getSkuInfoDB(skuId);
     }
 
-//    private SkuInfo getSkuInfoDB(Long skuId) {
+    //    private SkuInfo getSkuInfoDB(Long skuId) {
 //        // select * from sku_info where id = skuId
 //        SkuInfo skuInfo = skuInfoMapper.selectById(skuId);
 //        if (null == skuId) {
@@ -490,7 +488,7 @@ public class ManageServiceImpl implements ManageService {
         // skuId=1000 在数据库中根本不存在！skuInfo 应该是空对象
         SkuInfo skuInfo = skuInfoMapper.selectById(skuId);
 
-        if (null!=skuInfo){
+        if (null != skuInfo) {
             // 查询Sku图片赋值给skuInfo 对象，那么这个时候，skuInfo 对象中 sku基本数据，sku图片数据
             // select * from sku_image where sku_id = skuId
             List<SkuImage> skuImageList = skuImageMapper.selectList(new QueryWrapper<SkuImage>().eq("sku_id", skuId));
@@ -541,10 +539,10 @@ public class ManageServiceImpl implements ManageService {
          */
         List<Map> mapList = skuSaleAttrValueMapper.getSaleAttrValuesBySpu(spuId);
         // 获取到数据以后。开始循环遍历集合中的每条数据
-        if (null!=mapList && mapList.size()>0){
+        if (null != mapList && mapList.size() > 0) {
             for (Map skuMaps : mapList) {
                 // map.put("55|57","30")
-                map.put(skuMaps.get("value_ids"),skuMaps.get("sku_id"));
+                map.put(skuMaps.get("value_ids"), skuMaps.get("sku_id"));
             }
         }
         return map;
@@ -553,81 +551,76 @@ public class ManageServiceImpl implements ManageService {
     @Override
     @GmallCache(prefix = "index")
     public List<JSONObject> getBaseCategoryList() {
-        ArrayList<JSONObject> list = new ArrayList<>();
-
-
-        // 1. 先获取所有的分类数据
+        List<JSONObject> list = new ArrayList<>();
+        // 先获取所有的分类数据
+        // select * from base_category_view
         List<BaseCategoryView> baseCategoryViewList = baseCategoryViewMapper.selectList(null);
-        //安照一级分类ID 进行分钟
-        Map<Long, List<BaseCategoryView>> category1Map
-                = baseCategoryViewList.stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory1Id));
-        //初始化一个index : 1    构建字符串
-        int index = 1;
-        //获取一级分类的数据
-        for (Map.Entry<Long, List<BaseCategoryView>> entry : category1Map.entrySet()) {
-            //获取一级分类Id
-            Long category1Id = entry.getKey();
-            // 一级分类id  下所有对应的集合数据
-            List<BaseCategoryView> category2List = entry.getValue();
+        // 按照一级分类Id 进行分组
+        Map<Long, List<BaseCategoryView>> category1Map = baseCategoryViewList.stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory1Id));
 
-            //生明一个对象保存一级分类数据   一级分类j'son 字符串
+        // 初始化一个index 构建json 字符串 "index": 1
+        int index = 1;
+        // 获取一级分类的数据
+        for (Map.Entry<Long, List<BaseCategoryView>> entry : category1Map.entrySet()) {
+            // 获取一级分类Id
+            Long categor1Id = entry.getKey();
+            // 一级分类Id 下所有对应的集合数据
+            List<BaseCategoryView> category2List = entry.getValue();
+            // 声明一个对象保存一级分类数据 一级分类的Json字符串
             JSONObject category1 = new JSONObject();
             category1.put("index", index);
-            category1.put("categoryId", category1Id);
-            //由于安照一级分类id  分组  获取一级分类名字
+            category1.put("categoryId", categor1Id);
+            // 由于刚刚按照了一级分类Id 进行分组
             String categoryName = category2List.get(0).getCategory1Name();
             category1.put("categoryName", categoryName);
+            // category1.put("categoryChild",""); 二级分类的数据
 
-//            category1.put("categoryChild", categoryChild);
-
-            //变量迭代
+            // 变量迭代
             index++;
-            //获取二级分类数据
+            // 获取二级分类的数据
             Map<Long, List<BaseCategoryView>> category2Map = category2List.stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory2Id));
-            //创建一个二级分类集合
+            // 创建一个二级分类对象的集合
             List<JSONObject> category2Child = new ArrayList<>();
-
-            //获取二级分类中的数据
+            // 获取二级分类中的数据
             for (Map.Entry<Long, List<BaseCategoryView>> entry2 : category2Map.entrySet()) {
-                //获取二级分类id
+                // 获取二级分类Id
                 Long category2Id = entry2.getKey();
-                //获取二级分类下的所有数据
+                // 获取二级分类下的所有数据
                 List<BaseCategoryView> category3List = entry2.getValue();
-                //声明一个二级分类json对象
+                // 声明一个二级分类Json 对象
                 JSONObject category2 = new JSONObject();
                 category2.put("categoryId", category2Id);
-                category1.put("categoryName", category3List.get(0).getCategory2Name());
+                category2.put("categoryName", category3List.get(0).getCategory2Name());
+                //  category2.put("categoryChild","");
 
-
-                //二级分类是多个，所有将二级分类对象添加到集合中
+                // 二级分类名称是多个，所有将二级分类对象添加到集合中
                 category2Child.add(category2);
-                //处理三级分类数据
 
-                //创建一个二级分类集合
+                // 处理三级分类数据
+                // 声明一个三级分类数据的集合
                 List<JSONObject> category3Child = new ArrayList<>();
-                category3List.stream().forEach((category3View)->{
-                    //创建一个三级分类对象
+                // Consumer
+                category3List.stream().forEach(category3View -> {
+                    // 创建一个三级分类对象
                     JSONObject category3 = new JSONObject();
                     category3.put("categoryId", category3View.getCategory3Id());
                     category3.put("categoryName", category3View.getCategory3Name());
-                    //将三级分类数据添加到集合
+
+                    // 将三级分类数据添加到集合
                     category3Child.add(category3);
                 });
-                //将三级分类数据放入二级分类
+                // 将三级分类数据放入二级分类的categoryChild
                 category2.put("categoryChild", category3Child);
-
-
             }
+            // 将二级分类数据放入一级分类的categoryChild
             category1.put("categoryChild", category2Child);
-            //2 .  按照数据的json接口方式   分别封装一级  二级  三级  分类数据
+            // 按照json数据接口方式 分别去封装 一级分类，二级分类，三级分类数据。
             list.add(category1);
         }
-
-
-
-        // 3.  封装完成后 返回数据
+        // 封装完成之后，将数据返回
         return list;
     }
-
-
 }
+
+
+
