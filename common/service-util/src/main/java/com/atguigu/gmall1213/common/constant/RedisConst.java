@@ -2,7 +2,7 @@ package com.atguigu.gmall1213.common.constant;
 
 /**
  * Redis常量配置类
- * 存储的电商中缓存的所有key组成
+ * 存储的电商中缓存的所有key组成！
  */
 public class RedisConst {
 
@@ -12,6 +12,9 @@ public class RedisConst {
     public static final long SKUKEY_TIMEOUT = 24 * 60 * 60;
     //单位：秒 尝试获取锁的最大等待时间
     public static final long SKULOCK_EXPIRE_PX1 = 1;
+
+    // 定义变量，记录空对象的缓存过期时间
+    public static final long SKUKEY_TEMPORARY_TIMEOUT = 1 * 60;
     //单位：秒 锁的持有时间
     public static final long SKULOCK_EXPIRE_PX2 = 1;
     public static final String SKULOCK_SUFFIX = ":lock";
@@ -36,3 +39,8 @@ public class RedisConst {
 
 
 }
+
+
+
+
+

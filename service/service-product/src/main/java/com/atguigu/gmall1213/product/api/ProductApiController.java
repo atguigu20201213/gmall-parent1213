@@ -1,5 +1,7 @@
 package com.atguigu.gmall1213.product.api;
 
+import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall1213.common.result.Result;
 import com.atguigu.gmall1213.model.product.BaseCategoryView;
 import com.atguigu.gmall1213.model.product.SkuInfo;
 import com.atguigu.gmall1213.model.product.SpuSaleAttr;
@@ -13,6 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 
 /**
  * @author mqx
@@ -24,34 +32,116 @@ import java.util.Map;
 public class ProductApiController {
     @Autowired
     private ManageService manageService;
+
     // 根据skuid 获取skuinfo   skuImage
     @GetMapping("inner/getSkuInfo/{skuId}")
     public SkuInfo getSkuInfoById(@PathVariable Long skuId) {
         return manageService.getSkuInfo(skuId);
     }
+
     // 根据三级分类Id 查询分类名称
     @GetMapping("inner/getCategoryView/{category3Id}")
-    public BaseCategoryView getCategoryView(@PathVariable Long category3Id){
+    public BaseCategoryView getCategoryView(@PathVariable Long category3Id) {
         return manageService.getBaseCategoryViewByCategory3Id(category3Id);
 
     }
+
     //根据skuId 获取商品价格
     // 根据skuId 获取商品价格
     @GetMapping("inner/getSkuPrice/{skuId}")
-    public BigDecimal getSkuPrice(@PathVariable Long skuId){
+    public BigDecimal getSkuPrice(@PathVariable Long skuId) {
         return manageService.getSkuPriceBySkuId(skuId);
     }
+
     // 回显销售属性-销售属性值
     @GetMapping("inner/getSpuSaleAttrListCheckBySku/{skuId}/{spuId}")
     public List<SpuSaleAttr> getSpuSaleAttrListCheckBySku(@PathVariable Long skuId,
-                                                          @PathVariable Long spuId){
-        return manageService.getSpuSaleAttrListCheckBySku(skuId,spuId);
+                                                          @PathVariable Long spuId) {
+        return manageService.getSpuSaleAttrListCheckBySku(skuId, spuId);
     }
 
     // 点击销售属性值进行切换
     @GetMapping("inner/getSkuValueIdsMap/{spuId}")
-    public Map getSkuValueIdsMap(@PathVariable Long spuId){
+    public Map getSkuValueIdsMap(@PathVariable Long spuId) {
         return manageService.getSkuValueIdsMap(spuId);
     }
 
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        //定义线程池
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(50, 500, 30, TimeUnit.SECONDS, new ArrayBlockingQueue(100) {
+
+        });
+        CompletableFuture<String> futureA = CompletableFuture.supplyAsync(() -> {
+            return "hello";
+        });
+        //线程进行睡眠
+
+        CompletableFuture<Void> futureB = futureA.thenAcceptAsync((s) -> {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println(s + "---futureB");
+        }, threadPoolExecutor);
+        CompletableFuture<Void> futureC = futureA.thenAcceptAsync((s) -> {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println(s + "---futureC");
+        }, threadPoolExecutor);
+
+        System.out.println(futureB.get());
+        System.out.println(futureC.get());
+
+
+//        //创建异步编排对象
+//        //使用lamd 函数表达式
+////        CompletableFuture.supplyAsync(() -> {
+////
+////        });
+//
+//        CompletableFuture<Integer> future = CompletableFuture.supplyAsync(new Supplier<Integer>() {
+//            @Override
+//            public Integer get() {
+//                System.out.println(Thread.currentThread().getName() + "你来了");
+////                int i = 1 / 0;
+//                return 100;
+//            }
+//        }).thenApply(new Function<Integer, Integer>() {
+//            @Override
+//            public Integer apply(Integer integer) {
+//                System.out.println("执行thenapplay  -----" + integer);
+//                return integer * 2;
+//            }
+//
+//        }).whenComplete(new BiConsumer<Integer, Throwable>() {
+//            @Override
+//            public void accept(Integer integer, Throwable throwable) {
+//                System.out.println("o======" + integer);
+//                System.out.println("throwable======" + throwable);
+//            }
+//        }).exceptionally(new Function<Throwable, Integer>() {
+//            @Override
+//            public Integer apply(Throwable throwable) {
+//                System.out.println("throwable----------" + throwable);
+//                return 8888;
+//            }
+//        });
+//
+//        //调用get（）
+//        System.out.println(future.get());
+//
+//
+    }
+
+    @GetMapping("getBaseCategoryList")
+    public Result getBaseCategoryList() {
+        List<JSONObject> baseCategoryList = manageService.getBaseCategoryList();
+        return Result.ok(baseCategoryList);
+    }
 }

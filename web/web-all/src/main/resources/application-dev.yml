@@ -1,6 +1,5 @@
 server:
   port: 8300
-
 spring:
   thymeleaf:
     mode: LEGACYHTML5
