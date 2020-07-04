@@ -2,8 +2,10 @@ package com.atguigu.gmall1213.product.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall1213.common.cache.GmallCache;
+import com.atguigu.gmall1213.common.constant.MqConst;
 import com.atguigu.gmall1213.common.constant.RedisConst;
 import com.atguigu.gmall1213.common.result.Result;
+import com.atguigu.gmall1213.common.service.RabbitService;
 import com.atguigu.gmall1213.model.product.*;
 import com.atguigu.gmall1213.product.mapper.*;
 
@@ -13,6 +15,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -75,6 +78,10 @@ public class ManageServiceImpl implements ManageService {
     @Autowired
     private RedissonClient redissonClient;
 
+    @Autowired
+    private BaseTrademarkMapper baseTrademarkMapper;
+
+  @Autowired private RabbitService rabbitService;
 
     @Override
 
@@ -306,8 +313,10 @@ public class ManageServiceImpl implements ManageService {
                 skuImageMapper.insert(skuImage);
             }
         }
+    // 发送一个消息队列  商品上架
+    rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS, MqConst.ROUTING_GOODS_UPPER, skuInfo.getId());
     }
-
+    //表示这个商品 可以上架
     @Override
     public void onSale(Long skuId) {
         //  is_sale = 1 表示可以上架，
@@ -316,7 +325,8 @@ public class ManageServiceImpl implements ManageService {
         skuInfo.setIsSale(1);
         skuInfo.setId(skuId);
         skuInfoMapper.updateById(skuInfo);
-
+// 发送一个消息队列  商品上架
+        rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS, MqConst.ROUTING_GOODS_UPPER, skuId);
     }
 
     @Override
@@ -326,6 +336,9 @@ public class ManageServiceImpl implements ManageService {
         skuInfo.setIsSale(0);
         skuInfo.setId(skuId);
         skuInfoMapper.updateById(skuInfo);
+        // 发送一个消息队列  商品下架
+        rabbitService.sendMessage(MqConst.EXCHANGE_DIRECT_GOODS, MqConst.ROUTING_GOODS_LOWER, skuInfo.getId());
+
     }
 
     @Override
@@ -619,6 +632,20 @@ public class ManageServiceImpl implements ManageService {
         }
         // 封装完成之后，将数据返回
         return list;
+    }
+
+    @Override
+    public BaseTrademark getBaseTrademarkByTmId(Long tmId) {
+
+
+        return baseTrademarkMapper.selectById(tmId);
+
+    }
+    //
+    @Override
+    public List<BaseAttrInfo> getAttrInfoList(Long skuId) {
+        //sku_attr——value 这个中间表没有属性名称，属性值名称等，所以要进行多表查询
+        return baseAttrInfoMapper.selectAttrInfoList(skuId);
     }
 }
 

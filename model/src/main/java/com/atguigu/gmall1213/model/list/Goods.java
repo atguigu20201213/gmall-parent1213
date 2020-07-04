@@ -18,7 +18,7 @@ public class Goods {
 
     @Field(type = FieldType.Keyword, index = false)
     private String defaultImg;
-
+    //skuName    商品名字
     @Field(type = FieldType.Text, analyzer = "ik_max_word")
     private String title;
 

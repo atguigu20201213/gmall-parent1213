@@ -2,6 +2,7 @@ package com.atguigu.gmall1213.item.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall1213.item.service.ItemService;
+import com.atguigu.gmall1213.list.client.ListFeignClient;
 import com.atguigu.gmall1213.model.product.BaseCategoryView;
 import com.atguigu.gmall1213.model.product.SkuInfo;
 import com.atguigu.gmall1213.model.product.SpuInfo;
@@ -26,6 +27,8 @@ public class ItemServiceImpl implements ItemService {
     // 编写一个自定义的线程池！
     @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
+    @Autowired
+    private ListFeignClient listFeignClient;
 
     @Override
     public Map<String, Object> getBySkuId(Long skuId) {
@@ -81,14 +84,32 @@ public class ItemServiceImpl implements ItemService {
 //             需要将skuValueIdsMap 转化为Json 字符串，给页面使用!  Map --->Json
             String valuesSkuJson = JSON.toJSONString(skuValueIdsMap);
             // 保存销售属性值Id 和 skuId 组成的json 字符串
-            result.put("valuesSkuJson",valuesSkuJson);
-        }),threadPoolExecutor);
+            result.put("valuesSkuJson", valuesSkuJson);
+        }), threadPoolExecutor);
 
+
+
+        //热度排名计算
+        /**
+         * @GetMapping("/api/list/inner/incrHotScore/{skuId}")
+         * Result incrHotScore(@PathVariable("skuId") Long skuId);\
+         * 方法一    skuid = skuinfo.getid()
+         * 方式 二  直接获取参数 skuid
+         *
+         */
+        CompletableFuture<Void> incrHotScoreCompletableFuture = CompletableFuture.runAsync(() -> {
+            //远程调用排名方法
+            listFeignClient.incrHotScore(skuId);
+        }, threadPoolExecutor);//没有返回值
+
+
+        //所有的异步编排做整合
         CompletableFuture.allOf(skuInfoCompletableFuture,
                 spuSaleAttrCompletableFuture,
                 categoryViewCompletableFuture,
                 priceCompletableFuture,
-                valuesSkuJsonCompletableFuture).join();
+                valuesSkuJsonCompletableFuture,
+                incrHotScoreCompletableFuture).join();
         return result;
     }
 }

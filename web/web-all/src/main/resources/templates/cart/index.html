@@ -51,13 +51,13 @@
                             <li class="yui3-u-5-24">
                                 <div class="item-txt"></div>
                             </li>
-                            <li class="yui3-u-1-8"><span class="price">{{ item.skuPrice }}</span></li>
+                            <li class="yui3-u-1-8"><span class="price">{{ item.skuPrice }} </span></li>
                             <li class="yui3-u-1-8">
                                 <a href="javascript:void(0)" class="increment mins" @click="down(item)">-</a>
                                 <input :value="item.skuNum"  minnum="1" class="itxt" />
                                 <a href="javascript:void(0)" class="increment plus" @click="add(item)">+</a>
                             </li>
-                            <li class="yui3-u-1-8"><span class="sum" >{{ item.skuPrice * item.skuNum }}</span></li>
+                            <li class="yui3-u-1-8"><span class="sum" >{{ item.skuPrice * item.skuNum }} </span></li>
                             <li class="yui3-u-1-8">
                                 <a href="javascript:void(0)" @click="deleteCart(item.skuId)">删除</a><br />
                                 <a href="#none">移到收藏</a>
